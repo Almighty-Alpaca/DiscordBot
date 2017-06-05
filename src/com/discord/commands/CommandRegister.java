@@ -1,7 +1,7 @@
 package com.discord.commands;
 
 import com.discord.commands.games.Test.ping;
-import com.discord.commands.games.league.champData;
+import com.discord.commands.games.league.ChampData;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -18,7 +18,7 @@ public class CommandRegister {
     static Map<String, CommandExec> commands = new HashMap<>();
 
     public static void registerCommands() {
-        registerCommand(new champData());
+        registerCommand(new ChampData());
         registerCommand(new ping());
     }
 

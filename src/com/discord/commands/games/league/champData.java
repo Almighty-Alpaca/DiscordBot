@@ -1,19 +1,19 @@
 package com.discord.commands.games.league;
 import com.discord.commands.CommandExec;
+import net.dv8tion.jda.core.MessageBuilder;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
+import org.json.JSONTokener;
 import java.io.*;
 import java.net.URL;
-import java.nio.charset.Charset;
 
 /**
  * Created by xavi on 31/05/2017.
  */
 
-public class champData extends CommandExec {
+public class ChampData extends CommandExec {
 
     @Override
     public String[] getAlias() {
@@ -46,13 +46,24 @@ public class champData extends CommandExec {
                 channel.getChannel().sendMessage("You need to put a champion").queue();
             } else {
                 channel.getChannel().sendMessage("Party!").queue();
-                JSONObject json = readJsonFromUrl("http://api.champion.gg/champion/"+args[1]+"/skills/mostWins?api_key="+API_KEY);
+				JSONArray dataArray = readJsonArrayFromUrl("http://api.champion.gg/champion/" + args[1] + "/skills/mostWins?api_key=" + API_KEY);
+
+				JSONObject championData = dataArray.getJSONObject(0); // first one
+				JSONArray order = championData.getJSONArray("order");
+
+				MessageBuilder text = new MessageBuilder();
+
+				for (int i = 0; i < order.length(); i++) {
+					String ability = order.getString(i);
+					text.append(' ').append(":regional_indicator_" + ability.toLowerCase() + ":");
+				}
+
                 //if args.length==2
                 champ = args[1];
                 switch (args[0]) {
                     case "level":
                         System.out.println("im in boys");
-                        channel.getChannel().sendMessage(json.toString()).queue();
+                        channel.getChannel().sendMessage(text.build()).queue();
                         break;
                     case "build":
                         break;
@@ -68,25 +79,11 @@ public class champData extends CommandExec {
         return null;
     }
 
-    private static String readAll(Reader rd) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        int cp;
-        while ((cp = rd.read()) != -1) {
-            sb.append((char) cp);
-        }
-        return sb.toString();
-    }
+	public static JSONObject readJsonObjectFromUrl(String url) throws IOException, JSONException {
+		return new JSONObject(new JSONTokener(new URL(url).openStream()));
+	}
 
-    public static JSONObject readJsonFromUrl(String url) throws IOException, JSONException {
-        InputStream is = new URL(url).openStream();
-        try {
-            BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
-            String jsonText = readAll(rd);
-            jsonText = jsonText.substring(1, jsonText.length()-1);//fix JSONObject text must begin with '{' at 1 [character 2 line 1] with '{' error
-            JSONObject json = new JSONObject(jsonText);
-            return json;
-        } finally {
-            is.close();
-        }
-    }
+	public static JSONArray readJsonArrayFromUrl(String url) throws IOException, JSONException {
+		return new JSONArray(new JSONTokener(new URL(url).openStream()));
+	}
 }
